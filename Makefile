@@ -36,3 +36,8 @@ langlex.o: langlex.c
 lang: $(OBJS)
 	g++ $(OBJS) -o lang
 
+
+# calc: calc.l
+#	gflex -o calc.c calc.l
+#	g++ $(COPTS) -Wno-sign-compare -o calc.o calc.c
+#	g++ calc.o -o calc
