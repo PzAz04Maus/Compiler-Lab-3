@@ -34,6 +34,7 @@
 #define LE          1022        // <=
 #define PRINTS      1023        // prints
 #define STRING_LIT  1024        // "stuff..."
+#define END         1025        // end of input
 
 #define JUNK_TOKEN  2000
 
