@@ -9,13 +9,16 @@
 
 COPTS=-Wall -g -c  -O0
 OBJS=main.o \
+	 parse.o \
+	 utils.o \
 	 langlex.o \
 
-all: lang
+all: calc lang
 
 clean:
 	rm -f $(OBJS)
 	rm -f langlex.c
+	rm -f calc
 	rm -f lang
 	rm -f out
 
@@ -33,8 +36,12 @@ langlex.c: lang.l
 
 langlex.o: langlex.c
 	g++ $(COPTS) -Wno-sign-compare $? -o $@
-lang: $(OBJS)
-	g++ $(OBJS) -o lang
+calc: $(OBJS)
+	g++ $(OBJS) -o calc
+
+# Compatibility for provided test scripts (they run ./lang)
+lang: calc
+	ln -sf calc lang
 
 
 # calc: calc.l

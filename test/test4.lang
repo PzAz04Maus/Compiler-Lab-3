@@ -1,0 +1,26 @@
+// test4: edge cases beyond the provided suite
+// - exercises identifier productions, braces, comments
+// - includes a few intentional syntax errors to verify recovery
+
+// valid: nested EXPR in brackets, TERM' with * and /
+[ (1) + (2) + (3) ] * [ (4) - (5) ] / [ 6 ] ;
+
+// valid: assignment to INT
+foo = 5;
+
+// valid: braced identifier as a TERM
+{bar};
+
+// valid: assignment using braced identifier inside parentheses and a bracketed multiplicative TERM
+foo = ( {bar} ) + ( [1] * [2] ) ;
+
+// invalid: '+' requires '(EXPR)' on the right in this grammar; also tests sync to ';'
+1 + 2;
+
+// invalid: mismatched delimiters inside a bracketed TERM; should recover at ';'
+[(1)+(2))*[(3]-(4)]/[5];
+
+// invalid: braces must contain exactly one identifier
+{{baz}};
+
+end junk

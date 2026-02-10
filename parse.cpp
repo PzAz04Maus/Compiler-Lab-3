@@ -15,11 +15,11 @@
 #include "tokens.h"
 
 
-// helper: skip tokens until ';' or end-of-input, then consume ';' if found
+// helper: skip tokens until ';', 'end', or end-of-input, then consume ';' if found
 static void SyncToSemicolon()
 {
     int token = PeekToken();
-    while (token != 0 && token != ';')
+    while (token != 0 && token != ';' && token != END)
     {
         AdvanceToken();
         token = PeekToken();
@@ -34,10 +34,7 @@ static void SyncToSemicolon()
 bool FindPROG()
 {
     // PROG -> STMTS end
-    while (FindSTMT())
-    {
-        // Keep parsing statements while they exist
-    }
+    FindSTMTS();
 
     if (PeekToken() != END)
     {
@@ -53,14 +50,18 @@ bool FindPROG()
 // Find a STMTS non-terminal
 bool FindSTMTS()
 {
-    int token = PeekToken();
-    if (token == 0)
-        return true; // empty statement list is valid
+    while (true)
+    {
+        int token = PeekToken();
+        if (token == 0 || token == END)
+            return true; // empty statement list is valid
 
-    if (!FindSTMT())
-        return false;
-
-    return FindSTMTS();
+        if (!FindSTMT())
+        {
+            SyncToSemicolon();
+            continue;
+        }
+    }
 }
 
 //*******************************************
@@ -70,28 +71,26 @@ bool FindSTMT()
 {
     int token = PeekToken();
     
-    if(token == IDENTIFIER )
+    // STMT -> identifier = EXPR ;
+    if (token == IDENTIFIER)
     {
         AdvanceToken();
 
-        if(PeekToken() != '=')
+        if (PeekToken() != '=')
         {
-            Error("=");
-            SyncToSemicolon();
+            Error("'='");
             return false;
         }
         AdvanceToken();
 
-        if(!FindEXPR())
+        if (!FindEXPR())
         {
-            SyncToSemicolon();
             return false;
         }
 
-        if(PeekToken() != ';')
+        if (PeekToken() != ';')
         {
-            Error(";");
-            SyncToSemicolon();
+            Error("';'");
             return false;
         }
         AdvanceToken();
@@ -100,20 +99,18 @@ bool FindSTMT()
         return true;
     }
 
-
+    // STMT -> EXPR ;
     {
-        if(token=='('|| token == '[' || token == '{' || token == INT_VAL)
+        if (token == '(' || token == '[' || token == '{' || token == INT_VAL)
         {
-            if(!FindEXPR())
+            if (!FindEXPR())
             {
-                SyncToSemicolon();
                 return false;
             }
 
-            if(PeekToken() != ';')
+            if (PeekToken() != ';')
             {
-                Error(";");
-                SyncToSemicolon();
+                Error("';'");
                 return false;
             }
             AdvanceToken();
@@ -123,7 +120,6 @@ bool FindSTMT()
         }
 
         Error("Statement");
-        SyncToSemicolon();
         return false;
     }
 
@@ -153,29 +149,34 @@ bool FindEXPR()
     }
 
     // EXPR -> TERM
-    if (!FindTERM())
-        return false;
-
-    return true;
+    return FindTERM();
 }
 
 bool FindEXPR_ALPHA()
 {
-    int token = PeekToken();
-
-    if(token == 0)
+    // EXPR' -> PLUSOP (EXPR) EXPR' | 
+    while (true)
     {
-        return true; // empty statement is valid
-    }
+        if (!FindPLUSOP())
+            return true;
 
-    // EXPR' -> + EXPR
-    if (FindPLUSOP())
-    {
+        if (PeekToken() != '(')
+        {
+            Error("'('");
+            return false;
+        }
+        AdvanceToken();
+
         if (!FindEXPR())
             return false;
-    }
 
-    return true;
+        if (PeekToken() != ')')
+        {
+            Error("')'");
+            return false;
+        }
+        AdvanceToken();
+    }
 }
 
 bool FindTERM()
@@ -208,12 +209,17 @@ bool FindTERM()
         return true;
     }
 
-    if(token == '{')
+    // TERM -> { identifier }
+    if (token == '{')
     {
         AdvanceToken(); // consume '{'
 
-        if (token != IDENTIFIER)
+        if (PeekToken() != IDENTIFIER)
+        {
+            Error("identifier");
             return false;
+        }
+        AdvanceToken(); // consume identifier
 
         if (PeekToken() != '}')
         {
@@ -231,34 +237,28 @@ bool FindTERM()
 
 bool FindTERM_ALPHA()
 {
-    int token = PeekToken();
-
-    // empty statement is valid
-    if (token == 0)
-        return true; 
-
-    if(FindTIMESOP())
+    // TERM' -> TIMESOP [EXPR] TERM' | 
+    while (true)
     {
-        AdvanceToken(); // consume '*'
+        if (!FindTIMESOP())
+            return true;
 
-        if(PeekToken() != '[')
+        if (PeekToken() != '[')
         {
             Error("'['");
             return false;
         }
         AdvanceToken(); // consume '['
 
-        if (!FindTERM())
+        if (!FindEXPR())
             return false;
 
-        if(PeekToken() != ']')
+        if (PeekToken() != ']')
         {
             Error("']'");
             return false;
         }
         AdvanceToken(); // consume ']'
-
-        return true;
     }
 }
 

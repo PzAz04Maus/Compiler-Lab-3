@@ -1,0 +1,33 @@
+Lab3 LL1 Calc.doc
+Lab3 LL1 Calc.pdf
+
+# Build outputs (per Makefile)
+lang
+out
+*.o
+
+# Generated sources
+langlex.c
+
+# Common C/C++ artifacts
+*.a
+*.so
+*.dylib
+*.exe
+*.obj
+*.dll
+
+# Debug symbols / core dumps
+*.dSYM/
+*.dwo
+*.dwp
+core
+core.*
+
+# Editor/OS cruft
+.vscode/
+.idea/
+*~
+*.swp
+*.swo
+.DS_Store

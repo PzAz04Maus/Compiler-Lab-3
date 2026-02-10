@@ -10,6 +10,8 @@
 #include "lex.h"
 #include "tokens.h"
 
+#include <stdio.h>
+
 // Macros that can be used to create debug output from the scanner
 // Uncomment the next line of code to generate debug output.
 // Note: for this to work, use DO_RETURN(val) for all the return statements
@@ -31,13 +33,36 @@ int Return(int val);
 %option yylineno
 
 
-    /* definitions go here. period is an example. */
-    /* NOTE: You do not need to use definitions */
-letters          [a-z]
+digit           [0-9]
+idstart         [A-Za-z_]
+idchar          [A-Za-z0-9_]
+identifier      {idstart}{idchar}*
+integer         {digit}+
+ws              [ \t\r\n]+
 %%
 
-    // token definitions. I gave "program" as an example
-program                   DO_RETURN(PROGRAM);
+"//".*                    
+{ws}                      
+
+"end"                     DO_RETURN(END);
+
+{integer}                 DO_RETURN(INT_VAL);
+{identifier}              DO_RETURN(IDENTIFIER);
+
+"+"                       DO_RETURN('+');
+"-"                       DO_RETURN('-');
+"*"                       DO_RETURN('*');
+"/"                       DO_RETURN('/');
+"="                       DO_RETURN('=');
+";"                       DO_RETURN(';');
+"("                       DO_RETURN('(');
+")"                       DO_RETURN(')');
+"["                       DO_RETURN('[');
+"]"                       DO_RETURN(']');
+"{"                       DO_RETURN('{');
+"}"                       DO_RETURN('}');
+
+.                         DO_RETURN(yytext[0]);
 
 %%
 
